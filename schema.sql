@@ -1,219 +1,112 @@
-/*==============================================================*/
-/* Nom de SGBD :  MySQL 4.0                                     */
-/* Date de création :  28/08/2025 22:39:25                      */
-/*==============================================================*/
+# Go inside your repo
+cd alx-airbnb-database
 
+# Create required directories
+mkdir -p ERD
+mkdir -p database-script-0x01
 
-drop index ASSOCIATION_2_FK on BOOKING;
+# ========================
+# ERD Requirements
+# ========================
+cat > ERD/requirements.md << 'EOF'
+# ERD Requirements
 
-drop index ASSOCIATION_4_FK on BOOKING;
+## Objective
+Create an Entity-Relationship (ER) diagram based on the database specification.
 
-drop index ASSOCIATION_6_FK on MESSAGE;
+## Entities
+- **User**
+- **Property**
+- **Booking**
+- **Payment**
+- **Review**
+- **Message**
 
-drop index ASSOCIATION_7_FK on MESSAGE;
+## Relationships
+- User ↔ Booking
+- User ↔ Property
+- User ↔ Review
+- User ↔ Message
+- Property ↔ Booking
+- Property ↔ Review
+- Booking ↔ Payment
 
-drop index ASSOCIATION_8_FK on PAYMENT;
+## Instructions
+1. Identify entities and attributes.
+2. Define relationships between them.
+3. Use a tool like Draw.io to create the ER diagram.
+EOF
 
-drop index ASSOCIATION_1_FK on PROPERTY;
+# ========================
+# Normalization File
+# ========================
+cat > normalization.md << 'EOF'
+# Normalization Steps
 
-drop index ASSOCIATION_3_FK on REVIEW;
+## Objective
+Apply normalization principles to ensure the database is in the third normal form (3NF).
 
-drop index ASSOCIATION_5_FK on REVIEW;
+## 1NF
+- All attributes hold atomic values.
+- No repeating groups.
+- Example: User phone number is a single attribute, not multiple columns.
 
-drop table if exists BOOKING;
+## 2NF
+- All non-key attributes depend fully on the primary key.
+- Example: In Booking, total_price depends on (booking_id), not partially on property_id.
 
-drop table if exists MESSAGE;
+## 3NF
+- No transitive dependencies.
+- Example: Payment method details are stored only in Payment, not repeated in Booking.
 
-drop table if exists PAYMENT;
+## Result
+The schema now avoids redundancy, ensures consistency, and satisfies 3NF.
+EOF
 
-drop table if exists PROPERTY;
+# ========================
+# Schema.sql File
+# ========================
+cat > database-script-0x01/schema.sql << 'EOF'
+-- schema.sql
+-- Airbnb-like database schema
 
-drop table if exists REVIEW;
+DROP TABLE IF EXISTS Message CASCADE;
+DROP TABLE IF EXISTS Review CASCADE;
+DROP TABLE IF EXISTS Payment CASCADE;
+DROP TABLE IF EXISTS Booking CASCADE;
+DROP TABLE IF EXISTS Property CASCADE;
+DROP TABLE IF EXISTS "User" CASCADE;
 
-drop table if exists USER;
-
-/*==============================================================*/
-/* Table : BOOKING                                              */
-/*==============================================================*/
-create table BOOKING
-(
-   BOOKING_ID                     int                            not null,
-   USER_ID                        varchar(36)                    not null,
-   PROPERTY_ID                    int                            not null,
-   START_DATE                     date,
-   END_DATE                       date,
-   TOTAL_PRICE                    decimal,
-   STATUS                         char(10),
-   CREATED_AT                     datetime,
-   ATTRIBUT_22                    char(10),
-   primary key (BOOKING_ID)
-)
-type = InnoDB;
-
-/*==============================================================*/
-/* Index : ASSOCIATION_2_FK                                     */
-/*==============================================================*/
-create index ASSOCIATION_2_FK on BOOKING
-(
-   PROPERTY_ID
+-- ===============================
+-- User Table
+-- ===============================
+CREATE TABLE "User" (
+    user_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    first_name VARCHAR(100) NOT NULL,
+    last_name VARCHAR(100) NOT NULL,
+    email VARCHAR(255) UNIQUE NOT NULL,
+    password_hash VARCHAR(255) NOT NULL,
+    phone_number VARCHAR(20),
+    role VARCHAR(10) NOT NULL CHECK (role IN ('guest', 'host', 'admin')),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
-/*==============================================================*/
-/* Index : ASSOCIATION_4_FK                                     */
-/*==============================================================*/
-create index ASSOCIATION_4_FK on BOOKING
-(
-   USER_ID
-);
+CREATE INDEX idx_user_email ON "User"(email);
 
-/*==============================================================*/
-/* Table : MESSAGE                                              */
-/*==============================================================*/
-create table MESSAGE
-(
-   MESSAGE_ID                     int                            not null,
-   SENDER_ID                        varchar(36)                    not null,
-   RECIPIENT_ID                    varchar(36)                    not null,
-   MESSAGE_BODY                   text,
-   SENT_AT                        datetime,
-   primary key (MESSAGE_ID)
-)
-type = InnoDB;
+-- ===============================
+-- Property Table
+-- ===============================
+CREATE TABLE Property (
+    property_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    host_id UUID NOT NULL,
+    name VARCHAR(255) NOT NULL,
+    description TEXT NOT NULL,
+    location VARCHAR(255) NOT NULL,
+    pricepernight DECIMAL(10,2) NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 
-/*==============================================================*/
-/* Index : ASSOCIATION_6_FK                                     */
-/*==============================================================*/
-create index ASSOCIATION_6_FK on MESSAGE
-(
-   USE_USER_ID
-);
-
-/*==============================================================*/
-/* Index : ASSOCIATION_7_FK                                     */
-/*==============================================================*/
-create index ASSOCIATION_7_FK on MESSAGE
-(
-   USER_ID
-);
-
-/*==============================================================*/
-/* Table : PAYMENT                                              */
-/*==============================================================*/
-create table PAYMENT
-(
-   PAYMENT_ID                     int                            not null,
-   BOOKING_ID                     int                            not null,
-   AMOUNT                         decimal,
-   PAYMENT_DATE                   datetime,
-   PAYMENT_METHOD                 char(10),
-   primary key (PAYMENT_ID)
-)
-type = InnoDB;
-
-/*==============================================================*/
-/* Index : ASSOCIATION_8_FK                                     */
-/*==============================================================*/
-create index ASSOCIATION_8_FK on PAYMENT
-(
-   BOOKING_ID
-);
-
-/*==============================================================*/
-/* Table : PROPERTY                                             */
-/*==============================================================*/
-create table PROPERTY
-(
-   PROPERTY_ID                    int                            not null,
-   HOST_ID                        varchar(36)                    not null,
-   NAME                           varchar(100),
-   DESCRIPTION                    text,
-   LOCATION                       varchar(200),
-   PRICEPERNIGHT                  decimal,
-   CREATED_AT                     datetime,
-   UPDATED_AT                     datetime,
-   primary key (PROPERTY_ID)
-)
-type = InnoDB;
-
-/*==============================================================*/
-/* Index : ASSOCIATION_1_FK                                     */
-/*==============================================================*/
-create index ASSOCIATION_1_FK on PROPERTY
-(
-   USER_ID
-);
-
-/*==============================================================*/
-/* Table : REVIEW                                               */
-/*==============================================================*/
-create table REVIEW
-(
-   REVIEW_ID                      char(10)                       not null,
-   PROPERTY_ID                    int                            not null,
-   USER_ID                        varchar(36)                    not null,
-   RATING                         int,
-   COMMENT                        text,
-   CREATED_AT                     datetime,
-   primary key (REVIEW_ID)
-)
-type = InnoDB;
-
-/*==============================================================*/
-/* Index : ASSOCIATION_3_FK                                     */
-/*==============================================================*/
-create index ASSOCIATION_3_FK on REVIEW
-(
-   PROPERTY_ID
-);
-
-/*==============================================================*/
-/* Index : ASSOCIATION_5_FK                                     */
-/*==============================================================*/
-create index ASSOCIATION_5_FK on REVIEW
-(
-   USER_ID
-);
-
-/*==============================================================*/
-/* Table : USER                                                 */
-/*==============================================================*/
-create table USER
-(
-   USER_ID                        varchar(36)                    not null,
-   FIRST_NAME                     varchar(100),
-   LAST_NAME                      varchar(100),
-   EMAIL                          varchar(100),
-   PASSWORD_HASH                  varchar(500),
-   PHONE_NUMBER                   varchar(20),
-   ROLE                           char(10),
-   CREATED_AT                     datetime,
-   primary key (USER_ID)
-)
-type = InnoDB;
-
-alter table BOOKING add constraint FK_ASSOCIATION_2 foreign key (PROPERTY_ID)
-      references PROPERTY (PROPERTY_ID) on delete restrict on update restrict;
-
-alter table BOOKING add constraint FK_ASSOCIATION_4 foreign key (USER_ID)
-      references USER (USER_ID) on delete restrict on update restrict;
-
-alter table MESSAGE add constraint FK_ASSOCIATION_6 foreign key (RECIPIENT_ID)
-      references USER (USER_ID) on delete restrict on update restrict;
-
-alter table MESSAGE add constraint FK_ASSOCIATION_7 foreign key (SENDER_ID)
-      references USER (USER_ID) on delete restrict on update restrict;
-
-alter table PAYMENT add constraint FK_ASSOCIATION_8 foreign key (BOOKING_ID)
-      references BOOKING (BOOKING_ID) on delete restrict on update restrict;
-
-alter table PROPERTY add constraint FK_ASSOCIATION_1 foreign key (HOST_ID)
-      references USER (USER_ID) on delete restrict on update restrict;
-
-alter table REVIEW add constraint FK_ASSOCIATION_3 foreign key (PROPERTY_ID)
-      references PROPERTY (PROPERTY_ID) on delete restrict on update restrict;
-
-alter table REVIEW add constraint FK_ASSOCIATION_5 foreign key (USER_ID)
-      references USER (USER_ID) on delete restrict on update restrict;
+    CONSTRAINT fk_property_host FOREIGN KEY (host_id) REFERENCES_
 
 
 

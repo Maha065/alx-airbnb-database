@@ -1,5 +1,5 @@
 -- database_index.sql
--- Indexes to improve query performance
+-- Indexes to improve query performance and queries to measure impact
 
 -- ===========================
 -- User table indexes
@@ -28,13 +28,5 @@ CREATE INDEX idx_property_location ON Property(location);
 -- Index on user_id for joins between User and Booking
 CREATE INDEX idx_booking_user_id ON Booking(user_id);
 
--- Index on property_id for joins between Property and Booking
-CREATE INDEX idx_booking_property_id ON Booking(property_id);
-
--- Index on status for queries filtering bookings (pending, confirmed, canceled)
-CREATE INDEX idx_booking_status ON Booking(status);
-
--- ===========================
--- Composite Index Example
--- Optimize frequent queries filtering by user_id and property_id
-CREATE INDEX idx_booking_user_property ON Booking(user_id, property_id);
+-- Index on property_id for joins between Property and Boo_
+ooking_user_property ON Booking(user_id, property_id);
